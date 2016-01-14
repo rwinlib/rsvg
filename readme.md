@@ -18,8 +18,14 @@ LIBS="-lintl" \
   --with-xml-catalog=/c/msys2-x32/mingw32/etc/xml/catalog
 ```
 
-Build Notes:
- - glib2 was recompiled with --threads=win32
- - renamed DllMain from gdk-pixbuf2 (we dont need DllMain).
- - gdk-pixbuf2 needs patch from mingw-packages to enable static.
- - libcairo also seems to have DllMain
+For librsvg added some additional hacks to support static linking:
+
+```
+sed -i.bak s/strtok_r/strtok_rwinlib/g configure
+sed -i.bak s/strtok_r/strtok_rwinlib/g rsvg-css.c
+CXXFLAGS+=" -D_POSIX_SOURCE -DIN_LIBXML"
+CFLAGS+=" -D_POSIX_SOURCE -DIN_LIBXML"
+```
+
+In gdk-pixbuf2 I renamed DllMain because it conflicts with other libraries
+and doesn't do anything important.
