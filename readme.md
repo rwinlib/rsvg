@@ -3,11 +3,15 @@
 Builds of static C libraries for graphics using msys2. Compatible with
 both the old gcc-4.6.3 as well as the newer gcc 4.9.3 R toolchain.
 
+Patches also here: https://github.com/rwinlib/MINGW-packages/tree/rsvg
+
+Built everything from scratch on msys2 at Aug 3, 2016.
+
 ## Problems
 
-Building everything with msys2. Two problems:
+Building everything with msys2. A few problems:
 
- - Undefined references to `__imp_g_ascii_table and `__imp_g_utf8_skip`. Solution: rebuild with `-DGLIB_STATIC_COMPILATION`.
+ - Undefined references to `__imp_g_ascii_table` and `__imp_g_utf8_skip`. Solution: rebuild with `-DGLIB_STATIC_COMPILATION`.
  - Multiple `DllMain` defintions. Solution: patches to use constructors instead of DllMain.
  - Need to avoid mingw versions of `mkstemp` and `strtok` and `strtod` for gcc 4.6.3 compatibility.
 
@@ -24,7 +28,7 @@ Alternative patches are available from Fedora:
 
 To build with msys but make it link with the old toolchain you need to add
 
-#define strtod __strtod
+    #define strtod __strtod
 
 Inside glib/gstring.c after the includes. This uses the windows
 implementation of strtod instead of the new one from mingw V3.
@@ -32,17 +36,16 @@ Build both with:
 
 	CFLAGS="-D_POSIX_SOURCE -DLIBXML_STATIC -DGLIB_STATIC_COMPILATION"
 
-And `--enable-static --disable-shared --with-threads=win32`. Note that
-currently `--with-threads=posix` does not seem to work. 
+And `--enable-static --disable-shared --with-threads=win32`. Currently `--with-threads=posix` does not work. 
 
-Also as of 2016 mingw runtime has a new feature that redefines 
-DnsRecordListFree into the new DnsFree (which is not available in
-gcc 4.6.3 and gcc 4.9.3). So we need to undo that:
+**NEW** As of 2016 mingw runtime has a new feature that redefines 
+`DnsRecordListFree` into the new `DnsFree` which is not available in
+gcc 4.6.3 and gcc 4.9.3. So we need to undo that in `gio/gthreadedresolver.c`:
 
 	#undef DnsRecordListFree
 	VOID WINAPI DnsRecordListFree(PDNS_RECORD pRecordList,DNS_FREE_TYPE FreeType);
 
-See https://sourceforge.net/p/mingw-w64/mailman/message/34821938/
+See also: https://sourceforge.net/p/mingw-w64/mailman/message/34821938/
 
 ## Building pango
 
@@ -83,5 +86,5 @@ This builds using native windows `mktemp_s` and `strtod`.
 
 ## Zlib
 
-Build with `CFLAGS="-DNO_vsnprintf" for gcc 4.6.3 compatibility.
-Note that you do this for `zlib` and not `minizip`.
+Build with `CFLAGS="-DNO_vsnprintf"` for gcc 4.6.3 compatibility.
+Make sure to do this for `zlib` (not `minizip`).
