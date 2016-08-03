@@ -62,6 +62,12 @@ typedef struct _GdkPixbufAnimationIter GdkPixbufAnimationIter;
 
 GType               gdk_pixbuf_animation_get_type        (void) G_GNUC_CONST;
 
+#ifndef __GTK_DOC_IGNORE__
+#ifdef G_OS_WIN32
+#define gdk_pixbuf_animation_new_from_file gdk_pixbuf_animation_new_from_file_utf8
+#endif
+#endif
+
 GdkPixbufAnimation *gdk_pixbuf_animation_new_from_file   (const char         *filename,
                                                           GError            **error);
 GdkPixbufAnimation *gdk_pixbuf_animation_new_from_stream (GInputStream       *stream,
@@ -75,16 +81,6 @@ GdkPixbufAnimation *gdk_pixbuf_animation_new_from_stream_finish (GAsyncResult*as
                                                           GError            **error);
 GdkPixbufAnimation *gdk_pixbuf_animation_new_from_resource(const char        *resource_path,
                                                           GError            **error);
-
-#ifndef __GTK_DOC_IGNORE__
-#ifdef G_OS_WIN32
-#define gdk_pixbuf_animation_new_from_file gdk_pixbuf_animation_new_from_file_utf8
-
-GdkPixbufAnimation *gdk_pixbuf_animation_new_from_file_utf8   (const char         *filename,
-                                                          GError            **error);
-
-#endif
-#endif
 
 #ifndef GDK_PIXBUF_DISABLE_DEPRECATED
 G_DEPRECATED_FOR(g_object_ref)

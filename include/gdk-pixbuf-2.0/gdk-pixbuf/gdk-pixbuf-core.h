@@ -192,6 +192,7 @@ typedef void (* GdkPixbufDestroyNotify) (guchar *pixels, gpointer data);
  * @GDK_PIXBUF_ERROR_UNSUPPORTED_OPERATION: Don't know how to perform the
  *  given operation on the type of image at hand.
  * @GDK_PIXBUF_ERROR_FAILED: Generic failure code, something went wrong.
+ * @GDK_PIXBUF_ERROR_INCOMPLETE_ANIMATION: Only part of the animation was loaded.
  * 
  * An error code in the #GDK_PIXBUF_ERROR domain. Many gdk-pixbuf
  * operations can cause errors in this domain, or in the #G_FILE_ERROR
@@ -208,7 +209,8 @@ typedef enum {
         GDK_PIXBUF_ERROR_UNKNOWN_TYPE,
         /* unsupported operation (load, save) for image type */
         GDK_PIXBUF_ERROR_UNSUPPORTED_OPERATION,
-        GDK_PIXBUF_ERROR_FAILED
+        GDK_PIXBUF_ERROR_FAILED,
+        GDK_PIXBUF_ERROR_INCOMPLETE_ANIMATION
 } GdkPixbufError;
 
 GQuark gdk_pixbuf_error_quark (void);
@@ -263,6 +265,15 @@ GdkPixbuf *gdk_pixbuf_new_subpixbuf (GdkPixbuf *src_pixbuf,
 
 /* Simple loading */
 
+#ifndef __GTK_DOC_IGNORE__
+#ifdef G_OS_WIN32
+/* DLL ABI stability hack. */
+#define gdk_pixbuf_new_from_file gdk_pixbuf_new_from_file_utf8
+#define gdk_pixbuf_new_from_file_at_size gdk_pixbuf_new_from_file_at_size_utf8
+#define gdk_pixbuf_new_from_file_at_scale gdk_pixbuf_new_from_file_at_scale_utf8
+#endif
+#endif
+
 GdkPixbuf *gdk_pixbuf_new_from_file (const char *filename,
                                      GError    **error);
 GdkPixbuf *gdk_pixbuf_new_from_file_at_size (const char *filename,
@@ -308,47 +319,11 @@ GdkPixbuf* gdk_pixbuf_new_from_inline	(gint          data_length,
 					 GError      **error);
 #endif
 
-#ifndef __GTK_DOC_IGNORE__
-#ifdef G_OS_WIN32
-/* DLL ABI stability hack. */
-#define gdk_pixbuf_new_from_file gdk_pixbuf_new_from_file_utf8
-#define gdk_pixbuf_new_from_file_at_size gdk_pixbuf_new_from_file_at_size_utf8
-#define gdk_pixbuf_new_from_file_at_scale gdk_pixbuf_new_from_file_at_scale_utf8
-
-GdkPixbuf *gdk_pixbuf_new_from_file_utf8 (const char *filename,
-                                     GError    **error);
-GdkPixbuf *gdk_pixbuf_new_from_file_at_size_utf8 (const char *filename,
-					     int         width, 
-					     int         height,
-					     GError    **error);
-GdkPixbuf *gdk_pixbuf_new_from_file_at_scale_utf8 (const char *filename,
-					      int         width, 
-					      int         height,
-					      gboolean    preserve_aspect_ratio,
-					      GError    **error);
-
-#endif
-#endif
-
-
 /* Mutations */
 void       gdk_pixbuf_fill              (GdkPixbuf    *pixbuf,
                                          guint32       pixel);
 
 /* Saving */
-
-gboolean gdk_pixbuf_save           (GdkPixbuf  *pixbuf, 
-                                    const char *filename, 
-                                    const char *type, 
-                                    GError    **error,
-                                    ...) G_GNUC_NULL_TERMINATED;
-
-gboolean gdk_pixbuf_savev          (GdkPixbuf  *pixbuf, 
-                                    const char *filename, 
-                                    const char *type,
-                                    char      **option_keys,
-                                    char      **option_values,
-                                    GError    **error);
 
 #ifndef __GTK_DOC_IGNORE__
 #ifdef G_OS_WIN32
@@ -358,13 +333,28 @@ gboolean gdk_pixbuf_savev          (GdkPixbuf  *pixbuf,
 #endif
 #endif
 
-gboolean gdk_pixbuf_save_utf8      (GdkPixbuf  *pixbuf, 
+gboolean gdk_pixbuf_save           (GdkPixbuf  *pixbuf, 
                                     const char *filename, 
                                     const char *type, 
                                     GError    **error,
                                     ...) G_GNUC_NULL_TERMINATED;
 
-gboolean gdk_pixbuf_savev_utf8     (GdkPixbuf  *pixbuf, 
+/**
+ * gdk_pixbuf_savev_utf8:
+ * @pixbuf: a #GdkPixbuf.
+ * @filename: name of file to save.
+ * @type: name of file format.
+ * @option_keys: (array zero-terminated=1): name of options to set, %NULL-terminated
+ * @option_values: (array zero-terminated=1): values for named options
+ * @error: (allow-none): return location for error, or %NULL
+ *
+ * Saves pixbuf to a file in @type, which is currently "jpeg", "png", "tiff", "ico" or "bmp".
+ * If @error is set, %FALSE will be returned.
+ * See gdk_pixbuf_save () for more details.
+ *
+ * Return value: whether an error was set
+ **/
+gboolean gdk_pixbuf_savev          (GdkPixbuf  *pixbuf, 
                                     const char *filename, 
                                     const char *type,
                                     char      **option_keys,
@@ -473,6 +463,23 @@ void gdk_pixbuf_save_to_stream_async (GdkPixbuf           *pixbuf,
 
 gboolean gdk_pixbuf_save_to_stream_finish (GAsyncResult  *async_result,
 					   GError       **error);
+
+void gdk_pixbuf_save_to_streamv_async (GdkPixbuf           *pixbuf,
+                                       GOutputStream       *stream,
+                                       const gchar         *type,
+                                       gchar              **option_keys,
+                                       gchar              **option_values,
+                                       GCancellable        *cancellable,
+                                       GAsyncReadyCallback  callback,
+                                       gpointer             user_data);
+
+gboolean gdk_pixbuf_save_to_streamv (GdkPixbuf      *pixbuf,
+                                     GOutputStream  *stream,
+                                     const char     *type,
+                                     char          **option_keys,
+                                     char          **option_values,
+                                     GCancellable   *cancellable,
+                                     GError        **error);
 
 /* Adding an alpha channel */
 GdkPixbuf *gdk_pixbuf_add_alpha (const GdkPixbuf *pixbuf, gboolean substitute_color,
