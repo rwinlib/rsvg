@@ -95,7 +95,7 @@ typedef unsigned int guintptr;
 #endif
 
 #define GLIB_MAJOR_VERSION 2
-#define GLIB_MINOR_VERSION 48
+#define GLIB_MINOR_VERSION 56
 #define GLIB_MICRO_VERSION 1
 
 #define G_OS_WIN32
@@ -173,6 +173,7 @@ typedef unsigned int guintptr;
 #define G_MODULE_SUFFIX "dll"
 
 typedef void * GPid;
+#define G_PID_FORMAT "p"
 
 #define GLIB_SYSDEF_AF_UNIX 1
 #define GLIB_SYSDEF_AF_INET 2
@@ -181,6 +182,11 @@ typedef void * GPid;
 #define GLIB_SYSDEF_MSG_OOB 1
 #define GLIB_SYSDEF_MSG_PEEK 2
 #define GLIB_SYSDEF_MSG_DONTROUTE 4
+
+#define G_DIR_SEPARATOR '\\'
+#define G_DIR_SEPARATOR_S "\\"
+#define G_SEARCHPATH_SEPARATOR ';'
+#define G_SEARCHPATH_SEPARATOR_S ";"
 
 G_END_DECLS
 

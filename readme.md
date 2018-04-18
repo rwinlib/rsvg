@@ -1,90 +1,45 @@
-## Graphics stack
+# rsvg
 
-Builds of static C libraries for graphics using msys2. Compatible with
-both the old gcc-4.6.3 as well as the newer gcc 4.9.3 R toolchain.
+New rsvg stack built from scratch with rtools gcc 4.9.3. Extends the rwinlib cairo v1.15.10 stack.
 
-Patches also here: https://github.com/rwinlib/MINGW-packages/tree/rsvg
+Versions:
 
-Built everything from scratch on msys2 at Aug 3, 2016.
+ - rsvg 2.40.20
+ - glib2 2.56.1
+ - pango 1.42.1
+ - harfbuzz 1.7.5
+ - gdk-pixbuf 2.36.12
+ - cairo stack: 1.15.10
 
-## Problems
+Bugs:
 
-Building everything with msys2. A few problems:
+ - We build gdk-pixbuf2 with all loaders bundled, however librsvg seems to also have a pixbuf loader `libpixbufloader-svg.dll`. I don't think we have that right now, or perhaps it's included with librsvg.a.
 
- - Undefined references to `__imp_g_ascii_table` and `__imp_g_utf8_skip`. Solution: rebuild with `-DGLIB_STATIC_COMPILATION`.
- - Multiple `DllMain` defintions. Solution: patches to use constructors instead of DllMain.
- - Need to avoid mingw versions of `mkstemp` and `strtok` and `strtod` for gcc 4.6.3 compatibility.
+## Libs
 
-## Static linking with GLIB2
+Cairo libs copied from rwinlib/cairo v1.15.10
+Pcre and lzma copied from rwinlib/base v3.5
 
-glib2 and gdk-pixbuf need DllMain patches:
+## Static glib
 
- - https://github.com/Alexpux/MINGW-packages/pull/1611
+Configured glib2 with:
 
-Alternative patches are available from Fedora:
+    --with-threads=win32 \
 
- - https://smani.fedorapeople.org/glib-prefer-constructors-over-DllMain.patch
- - https://smani.fedorapeople.org/gdk-pixbuf_static.patch
+Configured gdk-pixbuf2 with:
 
-To build with msys but make it link with the old toolchain you need to add
+    --without-modules \
+    --with-included-loaders=gdip-bmp,gdip-emf,gdip-gif,gdip-ico,gdip-jpeg,gdip-tiff,gdip-wmf
 
-    #define strtod __strtod
+Configured harfbuzz with:
 
-Inside glib/gstring.c after the includes. This uses the windows
-implementation of strtod instead of the new one from mingw V3.
-Build both with:
+    --with-graphite2=no \
+    --with-icu=no \
 
-	CFLAGS="-D_POSIX_SOURCE -DLIBXML_STATIC -DGLIB_STATIC_COMPILATION"
+The following libs have to be compiled with `-DGLIB_STATIC_COMPILATION`:
 
-And `--enable-static --disable-shared --with-threads=win32`. Currently `--with-threads=posix` does not work. 
+ - gdk-pixbuf2
+ - pango
+ - librsvg
 
-**NEW** As of 2016 mingw runtime has a new feature that redefines 
-`DnsRecordListFree` into the new `DnsFree` which is not available in
-gcc 4.6.3 and gcc 4.9.3. So we need to undo that in `gio/gthreadedresolver.c`:
-
-	#undef DnsRecordListFree
-	VOID WINAPI DnsRecordListFree(PDNS_RECORD pRecordList,DNS_FREE_TYPE FreeType);
-
-See also: https://sourceforge.net/p/mingw-w64/mailman/message/34821938/
-
-## Building pango
-
-Need to build static library with `CFLAGS="-DGLIB_STATIC_COMPILATION"`.
-
-## Building librsvg2
-
-Hack to use internal `strtok` implementation:
-
-	sed -i.bak s/mkstemp/blablbla/g configure.ac
-	sed -i.bak s/HAVE_STRTOK_R/DOESNOTEXIST_BLABLA/g rsvg-css.c  
-	sed -i.bak s/strtok_r/strtok_rwinlib/g rsvg-css.c 
-
-Then build in msys2 with:
-
-	CFLAGS="-D_POSIX_SOURCE -DLIBXML_STATIC -DGLIB_STATIC_COMPILATION"
-
-That should do it.
-
-## Building libharfbuzz
-
-You either need to build `--without-graphite2` or with:
-
-	CFLAGS="-DGRAPHITE2_STATIC"
-	CPPFLAGS="-DGRAPHITE2_STATIC"
-
-Note that graphite2 C++ library is sensitive to the compiler version.
-
-## Fontconfig
-
-Patch source before running `autoreconf`:
-
-	sed -i.bak s/mkstemp/blablabla/g configure.ac
-	sed -i.bak s/strtod/__strtod/g src/fcxml.c
-	sed -i.bak s/strtod/__strtod/g src/fcname.c
-
-This builds using native windows `mktemp_s` and `strtod`.
-
-## Zlib
-
-Build with `CFLAGS="-DNO_vsnprintf"` for gcc 4.6.3 compatibility.
-Make sure to do this for `zlib` (not `minizip`).
+In addition librsvg itself needs to build with `-DLIBXML_STATIC`.  
