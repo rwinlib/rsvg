@@ -1,45 +1,29 @@
-# rsvg
+# LIBRSVG 2.48.4
 
-New rsvg stack built from scratch with rtools gcc 4.9.3. Extends the rwinlib cairo v1.15.10 stack.
+Note: this stack requires Windows 7 and therefore doensn't work on WinBuilder (which still runs Windows Vista/2008).
 
-Versions:
+Evertyhing was built with rtools40 except for these:
 
- - rsvg 2.40.20
- - glib2 2.56.1
- - pango 1.42.1
- - harfbuzz 1.7.5
- - gdk-pixbuf 2.36.12
- - cairo stack: 1.15.10
+ - glib2: from rtools-backports
+ - librsvg.a: copied from msys2 (needs rust to build)
+ - libcairo-gobject.a: copied from msys2 (our cairo doens't have glib bindings)
 
-Bugs:
+Use the following flags to build:
 
- - We build gdk-pixbuf2 with all loaders bundled, however librsvg seems to also have a pixbuf loader `libpixbufloader-svg.dll`. I don't think we have that right now, or perhaps it's included with librsvg.a.
+```
+PKG_CPPFLAGS= \
+	-I$(RWINLIB)/include/librsvg-2.0 \
+	-I$(RWINLIB)/include/glib-2.0 \
+	-I$(RWINLIB)/lib${R_ARCH}/glib-2.0/include \
+	-I$(RWINLIB)/include/gdk-pixbuf-2.0 \
+	-I$(RWINLIB)/include/cairo
 
-## Libs
-
-Cairo libs copied from rwinlib/cairo v1.15.10
-Pcre and lzma copied from rwinlib/base v3.5
-
-## Static glib
-
-Configured glib2 with:
-
-    --with-threads=win32 \
-
-Configured gdk-pixbuf2 with:
-
-    --without-modules \
-    --with-included-loaders=gdip-bmp,gdip-emf,gdip-gif,gdip-ico,gdip-jpeg,gdip-tiff,gdip-wmf
-
-Configured harfbuzz with:
-
-    --with-graphite2=no \
-    --with-icu=no \
-
-The following libs have to be compiled with `-DGLIB_STATIC_COMPILATION`:
-
- - gdk-pixbuf2
- - pango
- - librsvg
-
-In addition librsvg itself needs to build with `-DLIBXML_STATIC`.  
+PKG_LIBS= \
+	-L$(RWINLIB)/lib${R_ARCH} \
+	-lrsvg-2 -lxml2 \
+	-lpangocairo-1.0 -lpango-1.0 -lpangowin32-1.0 \
+	-lcairo -lfreetype -lpixman-1 -lgdk_pixbuf-2.0 \
+	-lcairo-gobject -lgio-2.0 -lgobject-2.0 -lgmodule-2.0 -lglib-2.0 \
+	-lffi -lpcre -lpng16 -lintl -lz -liconv -lfribidi \
+	-lusp10 -liphlpapi -lgdiplus -lgdi32 -lole32 -ldnsapi -lws2_32 -luserenv
+```
