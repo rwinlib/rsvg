@@ -1,4 +1,4 @@
-# LIBRSVG 2.50.5
+# LIBRSVG 2.48.8
 
 Evertyhing was built with rtools40. Use the following flags to build:
 
