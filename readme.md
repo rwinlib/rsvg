@@ -1,14 +1,6 @@
-# LIBRSVG 2.48.4
+# LIBRSVG 2.50.5
 
-Note: this stack requires Windows 7 and therefore doensn't work on WinBuilder (which still runs Windows Vista/2008).
-
-Evertyhing was built with rtools40 except for these:
-
- - glib2: from rtools-backports
- - librsvg.a: copied from msys2 (needs rust to build)
- - libcairo-gobject.a: copied from msys2 (our cairo doens't have glib bindings)
-
-Use the following flags to build:
+Evertyhing was built with rtools40. Use the following flags to build:
 
 ```
 PKG_CPPFLAGS= \
