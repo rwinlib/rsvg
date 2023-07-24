@@ -7,7 +7,7 @@ pacman -Sy
 OUTPUT=$(mktemp -d)
 
 # Download files (-dd skips dependencies)
-pkgs=$(echo mingw-w64-{i686,x86_64,ucrt-x86_64}-{librsvg,pango,cairo,glib2,libxml2,gdk-pixbuf2,glib2,harfbuzz,fribidi,libffi,freetype,pixman,libpng,libtiff,libjpeg-turbo,pcre,zlib})
+pkgs=$(echo mingw-w64-{i686,x86_64,ucrt-x86_64}-{librsvg,pango,cairo,glib2,libxml2,gdk-pixbuf2,glib2,harfbuzz,fribidi,libffi,freetype,pixman,libpng,libtiff,libjpeg-turbo,pcre,zlib,gettext})
 URLS=$(pacman -Spdd $pkgs --cache=$OUTPUT)
 VERSION=$(pacman -Si mingw-w64-x86_64-${PACKAGE} | awk '/^Version/{print $3}')
 
